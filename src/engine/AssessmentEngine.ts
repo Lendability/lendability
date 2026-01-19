@@ -58,10 +58,9 @@ export class AssessmentEngine {
     const passedRules = results.filter((r) => r.passed).length;
     const failedRules = totalRules - passedRules;
 
-    // Determine verdict: APPROVED only if all required rules pass
-    const criticalFailures = fixes.filter((f) => f.severity === "CRITICAL");
-    const verdict =
-      criticalFailures.length === 0 ? Verdict.APPROVED : Verdict.REJECTED;
+    // Determine verdict: APPROVED only if no fixes are required
+    // Binary lender-style decision: any fix requirement means rejection
+    const verdict = fixes.length === 0 ? Verdict.APPROVED : Verdict.REJECTED;
 
     return {
       verdict,
