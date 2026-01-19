@@ -1,0 +1,28 @@
+{
+  "name": "@lendability/engine",
+  "version": "0.1.0",
+  "description": "Deterministic finance-readiness and lendability engine for SME property development schemes",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "lendability",
+    "finance",
+    "sme",
+    "property-development",
+    "rule-engine"
+  ],
+  "author": "Lendability",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}
