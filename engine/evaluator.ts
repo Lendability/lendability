@@ -1,7 +1,7 @@
 import { computeMetrics } from './metrics'
 import { decide } from './decision'
 import { EvaluationContext, EvaluationInput, EvaluationResult, EvaluationOutput, RuleFailure } from './types'
-import { prereqPlanningStage, thresholdMin, thresholdMax } from './rules'
+import { prereqPlanningStage, prereqTechnicalPack, thresholdMin, thresholdMax } from './rules'
 import { MainstreamBands } from './bands'
 
 export function evaluate(input: EvaluationInput, bands: MainstreamBands): EvaluationResult {
@@ -20,10 +20,12 @@ export function evaluateDetailed(input: EvaluationInput, bands: MainstreamBands)
   const failures: RuleFailure[] = []
 
   // -------------------------
-  // INPUT / PLANNING (GATING)
+  // INPUT / PREREQS (GATING)
   // -------------------------
-  const planningGate = prereqPlanningStage(ctx.input)
-  if (planningGate) failures.push(planningGate)
+  failures.push(
+    ...prereqPlanningStage(ctx.input),
+    ...prereqTechnicalPack(ctx.input)
+  )
 
   // -------------------------
   // CORE METRICS (FATAL)

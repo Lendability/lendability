@@ -9,6 +9,8 @@ export type PlanningStage =
   | 'OUTLINE'
   | 'FULL'
 
+export type BuildRegsStage = 'NONE' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED'
+
 export interface PlanningInput {
   stage: PlanningStage
   /**
@@ -18,8 +20,40 @@ export interface PlanningInput {
   hasTdc?: boolean
 }
 
+export interface TechnicalPackInput {
+  /**
+   * Whether a cost plan / QS budget exists.
+   * Lenders usually gate if missing.
+   */
+  hasCostPlan?: boolean
+
+  /**
+   * Whether working drawings exist (RIBA 4-ish).
+   * Helps lenders validate buildability + costs.
+   */
+  hasWorkingDrawings?: boolean
+
+  /**
+   * Building Regulations progress.
+   */
+  buildRegsStage?: BuildRegsStage
+
+  /**
+   * Whether a mining / ground risk survey is available when required.
+   * (Requirement is conditional; see rule notes.)
+   */
+  hasMiningSurvey?: boolean
+
+  /**
+   * If true, the site is in an area where mining risk checks are required.
+   * (Keep this simple for now; later this can be derived from constraints.)
+   */
+  miningRiskArea?: boolean
+}
+
 export interface EvaluationInput {
   planning: PlanningInput
+  technicalPack: TechnicalPackInput
   scheme?: Record<string, any>
   appraisal?: Record<string, any>
   programme?: Record<string, any>

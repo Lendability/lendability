@@ -4,6 +4,12 @@ import { evaluate, SME_MAINSTREAM_BANDS_V1 } from '../index'
 const BASE_INPUT = {
   scheme: { units: 4 },
   planning: { stage: 'FULL' },
+  technicalPack: {
+    hasCostPlan: true,
+    hasWorkingDrawings: true,
+    buildRegsStage: 'SUBMITTED',
+    miningRiskArea: false,
+  },
   appraisal: {
     gdv: 1_000_000,
     total_cost: 800_000,
@@ -36,6 +42,41 @@ describe('Lendability engine – first lender rules', () => {
     expect(result.verdict).toBe('NOT_YET_LENDABLE')
     expect(result.status).toBe('GATING')
     expect(result.failures.some(f => f.ruleId === 'PREREQ_PLANNING_STAGE')).toBe(true)
+  })
+
+  it('GATING when missing cost plan', () => {
+    const bad = {
+      ...BASE_INPUT,
+      technicalPack: { ...BASE_INPUT.technicalPack, hasCostPlan: false },
+    }
+    const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
+    expect(result.status).toBe('GATING')
+    expect(result.verdict).toBe('NOT_YET_LENDABLE')
+    expect(result.failures[0]?.ruleId).toBe('PREREQ_TECHNICAL_PACK')
+  })
+
+  it('GATING when build regs not submitted', () => {
+    const bad = {
+      ...BASE_INPUT,
+      technicalPack: { ...BASE_INPUT.technicalPack, buildRegsStage: 'IN_PROGRESS' },
+    }
+    const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
+    expect(result.status).toBe('GATING')
+    expect(result.failures.some(f => f.ruleId === 'PREREQ_TECHNICAL_PACK')).toBe(true)
+  })
+
+  it('GATING when mining risk area and mining survey missing', () => {
+    const bad = {
+      ...BASE_INPUT,
+      technicalPack: {
+        ...BASE_INPUT.technicalPack,
+        miningRiskArea: true,
+        hasMiningSurvey: false,
+      },
+    }
+    const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
+    expect(result.status).toBe('GATING')
+    expect(result.failures.some(f => f.ruleId === 'PREREQ_TECHNICAL_PACK')).toBe(true)
   })
 
   it('FIXABLE when contingency below minimum', () => {

@@ -4,12 +4,12 @@ export function get(obj: any, path: string) {
   return path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj)
 }
 
-export function prereqPlanningStage(input: EvaluationInput): RuleFailure | null {
+export function prereqPlanningStage(input: EvaluationInput): RuleFailure[] {
   const stage = input.planning?.stage
   const hasTdc = input.planning?.hasTdc === true
 
   if (!stage || stage === 'NONE' || stage === 'PRE_APP') {
-    return {
+    return [{
       ruleId: 'PREREQ_PLANNING_STAGE',
       severity: 'FIXABLE',
       status: 'GATING',
@@ -17,21 +17,72 @@ export function prereqPlanningStage(input: EvaluationInput): RuleFailure | null 
       reason:
         'Planning stage insufficient for underwriting (need at least Outline, Full, or PiP with TDC).',
       fix: 'Secure at least Outline consent or PiP with TDC before re-submission.',
-    }
+    }]
   }
 
   if (stage === 'PIP' && !hasTdc) {
-    return {
+    return [{
       ruleId: 'PREREQ_PLANNING_STAGE',
       severity: 'FIXABLE',
       status: 'GATING',
       category: 'INPUT',
       reason: 'PiP without Technical Details Consent (TDC) is insufficient for underwriting.',
       fix: 'Provide TDC evidence or progress to Outline/Full consent.',
-    }
+    }]
   }
 
-  return null
+  return []
+}
+
+export function prereqTechnicalPack(input: EvaluationInput): RuleFailure[] {
+  const tp = input.technicalPack ?? {}
+
+  if (tp.hasCostPlan !== true) {
+    return [{
+      ruleId: 'PREREQ_TECHNICAL_PACK',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'Missing cost plan / QS budget (required for underwriting).',
+      fix: 'Provide a cost plan or QS budget for review.',
+    }]
+  }
+
+  if (tp.hasWorkingDrawings !== true) {
+    return [{
+      ruleId: 'PREREQ_TECHNICAL_PACK',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'Missing working drawings (required for underwriting).',
+      fix: 'Provide working drawings or equivalent design pack.',
+    }]
+  }
+
+  const br = tp.buildRegsStage ?? 'NONE'
+  if (br === 'NONE' || br === 'IN_PROGRESS') {
+    return [{
+      ruleId: 'PREREQ_TECHNICAL_PACK',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'Building Regulations not sufficiently progressed (need at least SUBMITTED).',
+      fix: 'Submit Building Regulations or provide evidence of submission.',
+    }]
+  }
+
+  if (tp.miningRiskArea === true && tp.hasMiningSurvey !== true) {
+    return [{
+      ruleId: 'PREREQ_TECHNICAL_PACK',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'Mining risk area flagged but mining/ground risk survey is missing.',
+      fix: 'Provide the mining/ground risk survey.',
+    }]
+  }
+
+  return []
 }
 
 function failure(
