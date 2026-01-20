@@ -2,6 +2,30 @@ export type Severity = 'FATAL' | 'FIXABLE'
 export type Verdict = 'MEETS_SME_LENDER_CRITERIA' | 'NOT_YET_LENDABLE'
 export type VerdictStatus = 'PASS' | 'FIXABLE' | 'FATAL' | 'GATING'
 
+export type PlanningStage =
+  | 'NONE'
+  | 'PRE_APP'
+  | 'PIP'
+  | 'OUTLINE'
+  | 'FULL'
+
+export interface PlanningInput {
+  stage: PlanningStage
+  /**
+   * True only when Technical Details Consent is secured (PIP -> TDC).
+   * Only relevant if stage === 'PIP'.
+   */
+  hasTdc?: boolean
+}
+
+export interface EvaluationInput {
+  planning: PlanningInput
+  scheme?: Record<string, any>
+  appraisal?: Record<string, any>
+  programme?: Record<string, any>
+  [key: string]: any
+}
+
 export interface RuleFailure {
   ruleId: string
   severity: Severity
@@ -34,7 +58,7 @@ export interface EvaluationOutput {
 }
 
 export interface EvaluationContext {
-  input: Record<string, any>
+  input: EvaluationInput
   metrics: Metrics
   aiScores?: Record<string, any>
   bands?: Record<string, any>

@@ -1,7 +1,37 @@
-import { RuleFailure, Severity } from './types'
+import { EvaluationInput, RuleFailure, Severity } from './types'
 
 export function get(obj: any, path: string) {
   return path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj)
+}
+
+export function prereqPlanningStage(input: EvaluationInput): RuleFailure | null {
+  const stage = input.planning?.stage
+  const hasTdc = input.planning?.hasTdc === true
+
+  if (!stage || stage === 'NONE' || stage === 'PRE_APP') {
+    return {
+      ruleId: 'PREREQ_PLANNING_STAGE',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason:
+        'Planning stage insufficient for underwriting (need at least Outline, Full, or PiP with TDC).',
+      fix: 'Secure at least Outline consent or PiP with TDC before re-submission.',
+    }
+  }
+
+  if (stage === 'PIP' && !hasTdc) {
+    return {
+      ruleId: 'PREREQ_PLANNING_STAGE',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'PiP without Technical Details Consent (TDC) is insufficient for underwriting.',
+      fix: 'Provide TDC evidence or progress to Outline/Full consent.',
+    }
+  }
+
+  return null
 }
 
 function failure(

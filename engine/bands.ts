@@ -1,10 +1,12 @@
+import type { PlanningStage } from './types'
+
 export type MainstreamBands = {
   min_margin_on_cost: number
   min_contingency_pct: number
   max_ltgdv: number
   max_ltc: number
   max_build_months_per_unit: number
-  allowed_planning_statuses: Array<'FULL' | 'OUTLINE' | 'RESERVED_MATTERS'>
+  allowed_planning_statuses: PlanningStage[]
 }
 
 export const SME_MAINSTREAM_BANDS_V1: MainstreamBands = {
@@ -13,5 +15,5 @@ export const SME_MAINSTREAM_BANDS_V1: MainstreamBands = {
   max_ltgdv: 0.65,
   max_ltc: 0.85,
   max_build_months_per_unit: 2.5,
-  allowed_planning_statuses: ['FULL', 'OUTLINE', 'RESERVED_MATTERS'],
+  allowed_planning_statuses: ['FULL', 'OUTLINE', 'PIP'],
 }

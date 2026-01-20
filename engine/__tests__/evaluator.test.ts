@@ -3,7 +3,7 @@ import { evaluate, SME_MAINSTREAM_BANDS_V1 } from '../index'
 
 const BASE_INPUT = {
   scheme: { units: 4 },
-  planning: { status: 'FULL' },
+  planning: { stage: 'FULL' },
   appraisal: {
     gdv: 1_000_000,
     total_cost: 800_000,
@@ -11,7 +11,7 @@ const BASE_INPUT = {
     build_cost: 500_000,
     contingency: 40_000, // 8%
   },
-  programme: { build_months: 12 },
+  programme: { build_months: 10 },
 }
 
 describe('Lendability engine – first lender rules', () => {
@@ -22,12 +22,20 @@ describe('Lendability engine – first lender rules', () => {
     expect(result.failures.length).toBe(0)
   })
 
-  it('FATAL when planning status invalid', () => {
-    const bad = { ...BASE_INPUT, planning: { status: 'PIP' } }
+  it('GATING when planning stage insufficient', () => {
+    const bad = { ...BASE_INPUT, planning: { stage: 'PRE_APP' } }
     const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
     expect(result.verdict).toBe('NOT_YET_LENDABLE')
-    expect(result.status).toBe('FATAL')
-    expect(result.failures.some(f => f.ruleId === 'PLN-001')).toBe(true)
+    expect(result.status).toBe('GATING')
+    expect(result.failures.some(f => f.ruleId === 'PREREQ_PLANNING_STAGE')).toBe(true)
+  })
+
+  it('GATING when PiP without TDC', () => {
+    const bad = { ...BASE_INPUT, planning: { stage: 'PIP', hasTdc: false } }
+    const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
+    expect(result.verdict).toBe('NOT_YET_LENDABLE')
+    expect(result.status).toBe('GATING')
+    expect(result.failures.some(f => f.ruleId === 'PREREQ_PLANNING_STAGE')).toBe(true)
   })
 
   it('FIXABLE when contingency below minimum', () => {

@@ -1,10 +1,14 @@
 import { computeMetrics } from './metrics'
 import { decide } from './decision'
-import { EvaluationContext, EvaluationResult, RuleFailure } from './types'
-import { enumAllowed, thresholdMin, thresholdMax, presence } from './rules'
+import { EvaluationContext, EvaluationInput, EvaluationResult, EvaluationOutput, RuleFailure } from './types'
+import { prereqPlanningStage, thresholdMin, thresholdMax } from './rules'
 import { MainstreamBands } from './bands'
 
-export function evaluate(input: any, bands: MainstreamBands): EvaluationResult {
+export function evaluate(input: EvaluationInput, bands: MainstreamBands): EvaluationResult {
+  return evaluateDetailed(input, bands).result
+}
+
+export function evaluateDetailed(input: EvaluationInput, bands: MainstreamBands): EvaluationOutput {
   const metrics = computeMetrics(input)
 
   const ctx: EvaluationContext = {
@@ -16,24 +20,10 @@ export function evaluate(input: any, bands: MainstreamBands): EvaluationResult {
   const failures: RuleFailure[] = []
 
   // -------------------------
-  // INPUT / PLANNING (FATAL)
+  // INPUT / PLANNING (GATING)
   // -------------------------
-  failures.push(
-    ...([presence(ctx, 'input.planning.status', {
-      id: 'PLN-000',
-      severity: 'FATAL',
-      category: 'INPUT',
-      reason: 'Missing planning status.',
-      fix: 'Provide planning status (FULL, OUTLINE, or RESERVED_MATTERS).',
-    }),
-    enumAllowed(ctx, 'input.planning.status', bands.allowed_planning_statuses, {
-      id: 'PLN-001',
-      severity: 'FATAL',
-      category: 'INPUT',
-      reason: 'Planning status is not acceptable for mainstream development finance screening.',
-      fix: 'Secure at least outline consent / reserved matters before re-submission.',
-    })].filter(Boolean) as RuleFailure[])
-  )
+  const planningGate = prereqPlanningStage(ctx.input)
+  if (planningGate) failures.push(planningGate)
 
   // -------------------------
   // CORE METRICS (FATAL)
@@ -86,5 +76,7 @@ export function evaluate(input: any, bands: MainstreamBands): EvaluationResult {
 
   for (const f of fixableRules) if (f) failures.push(f)
 
-  return decide(failures)
+  const { verdict, status } = decide(failures)
+
+  return { result: { verdict, status, failures }, debug: { metrics } }
 }
