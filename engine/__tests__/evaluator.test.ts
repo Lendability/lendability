@@ -10,6 +10,9 @@ const BASE_INPUT = {
     buildRegsStage: 'SUBMITTED',
     miningRiskArea: false,
   },
+  exitEvidence: {
+    hasAgentAppraisal: true,
+  },
   appraisal: {
     gdv: 1_000_000,
     total_cost: 800_000,
@@ -77,6 +80,28 @@ describe('Lendability engine – first lender rules', () => {
     const result = evaluate(bad, SME_MAINSTREAM_BANDS_V1)
     expect(result.status).toBe('GATING')
     expect(result.failures.some(f => f.ruleId === 'PREREQ_TECHNICAL_PACK')).toBe(true)
+  })
+
+  it('GATING when no exit evidence provided', () => {
+    const input = {
+      ...BASE_INPUT,
+      exitEvidence: {},
+    }
+
+    const result = evaluate(input, SME_MAINSTREAM_BANDS_V1)
+    expect(result.status).toBe('GATING')
+    expect(result.verdict).toBe('NOT_YET_LENDABLE')
+    expect(result.failures.some(f => f.ruleId === 'PREREQ_EXIT_EVIDENCE')).toBe(true)
+  })
+
+  it('PASS exit evidence when agent appraisal exists', () => {
+    const input = {
+      ...BASE_INPUT,
+      exitEvidence: { hasAgentAppraisal: true },
+    }
+
+    const result = evaluate(input, SME_MAINSTREAM_BANDS_V1)
+    expect(result.status).not.toBe('GATING')
   })
 
   it('FIXABLE when contingency below minimum', () => {

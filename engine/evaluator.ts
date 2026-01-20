@@ -1,7 +1,7 @@
 import { computeMetrics } from './metrics'
 import { decide } from './decision'
 import { EvaluationContext, EvaluationInput, EvaluationResult, EvaluationOutput, RuleFailure } from './types'
-import { prereqPlanningStage, prereqTechnicalPack, thresholdMin, thresholdMax } from './rules'
+import { prereqPlanningStage, prereqTechnicalPack, prereqExitEvidence, thresholdMin, thresholdMax } from './rules'
 import { MainstreamBands } from './bands'
 
 export function evaluate(input: EvaluationInput, bands: MainstreamBands): EvaluationResult {
@@ -24,7 +24,8 @@ export function evaluateDetailed(input: EvaluationInput, bands: MainstreamBands)
   // -------------------------
   failures.push(
     ...prereqPlanningStage(ctx.input),
-    ...prereqTechnicalPack(ctx.input)
+    ...prereqTechnicalPack(ctx.input),
+    ...prereqExitEvidence(ctx.input)
   )
 
   // -------------------------

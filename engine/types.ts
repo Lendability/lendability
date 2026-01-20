@@ -11,6 +11,26 @@ export type PlanningStage =
 
 export type BuildRegsStage = 'NONE' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED'
 
+export type ExitType = 'SALE' | 'REFINANCE'
+
+export interface ExitEvidenceInput {
+  /**
+   * Has a written agent appraisal or letter of opinion?
+   */
+  hasAgentAppraisal?: boolean
+
+  /**
+   * Are there any comparable sales provided?
+   */
+  hasComparableEvidence?: boolean
+
+  /**
+   * Optional: how lender is repaid.
+   * Not used for gating yet, but future-proof.
+   */
+  exitType?: ExitType
+}
+
 export interface PlanningInput {
   stage: PlanningStage
   /**
@@ -54,6 +74,7 @@ export interface TechnicalPackInput {
 export interface EvaluationInput {
   planning: PlanningInput
   technicalPack: TechnicalPackInput
+  exitEvidence: ExitEvidenceInput
   scheme?: Record<string, any>
   appraisal?: Record<string, any>
   programme?: Record<string, any>

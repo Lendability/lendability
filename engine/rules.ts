@@ -85,6 +85,27 @@ export function prereqTechnicalPack(input: EvaluationInput): RuleFailure[] {
   return []
 }
 
+export function prereqExitEvidence(input: EvaluationInput): RuleFailure[] {
+  const exit = input.exitEvidence ?? {}
+
+  const hasEvidence =
+    exit.hasAgentAppraisal === true ||
+    exit.hasComparableEvidence === true
+
+  if (!hasEvidence) {
+    return [{
+      ruleId: 'PREREQ_EXIT_EVIDENCE',
+      severity: 'FIXABLE',
+      status: 'GATING',
+      category: 'INPUT',
+      reason: 'No exit evidence provided (agent appraisal or comparable sales required).',
+      fix: 'Provide an agent appraisal or comparable sales evidence.',
+    }]
+  }
+
+  return []
+}
+
 function failure(
   ctx: any,
   field: string,
